@@ -9,12 +9,14 @@
 #define SYSTEM_H_
 
 #include "PCBList.h"
+#include "SBLKLST.h"
 class Thread;
 
 #define INTERRUPT_DISABLE asm cli;
 
 
 #define INTERRUPT_ENABLE asm sti;
+
 
 class System {
 	friend void interrupt timer(...);
@@ -27,6 +29,8 @@ class System {
 public:
 
 	static PCBList* allUserThreads;
+	static SBLKLST* blockedOnWaitList;
+
 	static volatile int preemptionEnabled;
 	static int contextSwitch;
 	static PCB * running;

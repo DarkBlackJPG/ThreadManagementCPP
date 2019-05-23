@@ -25,9 +25,6 @@ void PCBList::insert(PCB* data){
 		first = last = newNode;
 	} else {
 		last->next = newNode;
-		//INTERRUPT_DISABLE
-		//cout << "Nit sa id "<< data->getId() << "ima last na" << last << "i last next " << last->next << "\n";
-		//INTERRUPT_ENABLE
 		last = last->next;
 	}
 };

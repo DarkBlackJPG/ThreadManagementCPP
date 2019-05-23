@@ -13,15 +13,24 @@
 
 extern void dispatch();
 
-int PCB::idGenerator = 0;
 
+
+
+
+int PCB::idGenerator = 0;
 volatile int PCB::runNonStop = 0;
 volatile Time PCB::currentTimeSlice = defaultTimeSlice;
 
 
+
+
+
+
+
+
 PCB::PCB() :
 		myThread(0), myTimeSlice(0), myId(++idGenerator), ss(0), sp(0), bp(0),
-		myState(PCB::RUNNING), myStack(0) {
+		myState(PCB::RUNNING), myStack(0), timerRelease(1) {
 	blockedOnThread = new PCBList();
 	System::allUserThreads->insert(this);
 }
@@ -48,7 +57,7 @@ void PCB::wrapper(){
 
 PCB::PCB(Thread* myThread, StackSize stackSize, Time timeSlice) :
 	myThread(myThread), myTimeSlice(timeSlice), myId(++idGenerator), ss(0), sp(0), bp(0),
-	myState(PCB::CREATED), myStack(0) {
+	myState(PCB::CREATED), myStack(0), timerRelease(1) {
 
 	StackSize realStackSize = stackSize / 2; // Stack size is half of given stack size
 

@@ -34,6 +34,7 @@ public:
 	ID getId() const;
 
 
+
 	// Global variables
 	static volatile int runNonStop;
 	static volatile Time currentTimeSlice;
@@ -42,6 +43,7 @@ private:
 	friend int main(int, char*[]);
 	friend void dispatch();
 	friend void interrupt timer(...);
+	friend class KernelSem;
 	friend class System;
 	static int idGenerator;
 
@@ -51,7 +53,7 @@ private:
 	unsigned ss;
 	unsigned sp;
 	unsigned bp;
-
+	volatile int timerRelease;
 	ID myId;
 	Thread* myThread;
 	Time myTimeSlice;

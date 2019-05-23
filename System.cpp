@@ -28,11 +28,27 @@ extern void dispatch();
 
 class Thread;
 
+
+
+void interrupt (*System::_oldTimerInterrupt)(...) = 0;
+void interrupt (*System::_newTimerInterrupt)(...) = timer;
+PCBList* System::allUserThreads = new PCBList();
+volatile int System::preemptionEnabled;
+PCB * System::running;
+Thread * System::idleThread;
+int System::timerCall = 0;
+int System::contextSwitch = 0;
+SBLKLST* System::blockedOnWaitList;
+
+
+
+
 void interrupt timer(...) {
 	if(!System::timerCall){
 		System::_oldTimerInterrupt();
 		tick();
 		--PCB::currentTimeSlice;
+		System::blockedOnWaitList->updateList();
 	}
 	System::timerCall = 0;
 	if(System::contextSwitch || ( !PCB::runNonStop && PCB::currentTimeSlice == 0 )){
@@ -70,24 +86,13 @@ void interrupt timer(...) {
 	}
 }
 
-void interrupt (*System::_oldTimerInterrupt)(...) = 0;
-void interrupt (*System::_newTimerInterrupt)(...) = timer;
-
-int System::timerCall = 0;
 void System::setTimerCall(){
 	timerCall = 1;
 }
 
-int System::contextSwitch = 0;
-
 System::~System() {
 	// TODO Auto-generated destructor stub
 }
-
-PCBList* System::allUserThreads = new PCBList();
-volatile int System::preemptionEnabled = 1;
-PCB * System::running;
-Thread * System::idleThread;
 
 Thread * System::getThreadById(int id){
 	return allUserThreads->getNodeWithId(id)->myThread;
@@ -96,13 +101,12 @@ Thread * System::getThreadById(int id){
 void System::disablePreemption(){
 	--System::preemptionEnabled;
 };
+
 void System::enablePreemption(){
 	++System::preemptionEnabled;
 	 if (System::preemptionEnabled > 0 && System::contextSwitch)
 		dispatch();
 };
-
-
 void System::systemInitialization(){
 	INTERRUPT_DISABLE
 	// Preemption doesn't have to be disabled because there isn't a multithreaded
@@ -112,9 +116,12 @@ void System::systemInitialization(){
 	_oldTimerInterrupt = getvect(0x08);
 	setvect(0x08, timer);
 #endif
+
 	System::idleThread = new Idle();
 	System::running = new PCB();
 
+	System::preemptionEnabled = 1;
+	System::blockedOnWaitList = new SBLKLST();
 	INTERRUPT_ENABLE
 
 
