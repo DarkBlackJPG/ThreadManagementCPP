@@ -77,6 +77,8 @@ void KernelSem::block(Time t){
 };
 
 void KernelSem::deblock(){
+	if(valueBlock->first == 0)
+		return;
 	PCB* tempDat = valueBlock->getPCB();
 	if(!tempDat){
 
@@ -84,11 +86,7 @@ void KernelSem::deblock(){
 
 		System::blockedOnWaitList->remove(tempDat);
 	}
-	if(!tempDat)
-	{
-		INTERRUPT_DISABLE
-		cout << "GRESKA KOD DEBLOCK()!!!\n";
-		INTERRUPT_ENABLE
+	if(!tempDat){ // this should never happen
 		return;
 	}
 	value++;

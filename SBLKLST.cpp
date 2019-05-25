@@ -39,11 +39,11 @@ void SBLKLST::insert(PCB* data,Time timer, KernelSem* semaphore){
 		if(prev) {
 			prev->next = newNode;
 		} else { // This should never happen
-			INTERRUPT_DISABLE
-			cout << "ERROR!!!!!!!!";
-			INTERRUPT_ENABLE
+
 			return;
 		}
+		 if (temp)
+		        temp->timeRemaining-= timer;
 
 	} else {
 		newNode->next = first;
@@ -51,12 +51,14 @@ void SBLKLST::insert(PCB* data,Time timer, KernelSem* semaphore){
 		first->next->timeRemaining -= first->timeRemaining;
 
 	}
+
 };
 
 
 
 void SBLKLST::remove(PCB * data){
 	Node *temp = first;
+
 	Node *prev = 0;
 	while(temp != 0 && temp->nodeData != data)
 		temp = temp->next;
@@ -69,6 +71,7 @@ void SBLKLST::remove(PCB * data){
 		prev->next = temp->next;
 	}
 	delete temp;
+
 };
 
 
@@ -84,4 +87,14 @@ void SBLKLST::updateList(){
 		first->semaphore->deblock(first->nodeData);
 		delete temp;
 	}
+//	System::disablePreemption();
+//	temp = first;
+//	while(temp){
+//		cout << temp->timeRemaining << " | ";
+//		temp = temp->next;
+//	}
+//	cout << endl;
+//	System::enablePreemption();
+
+
 };

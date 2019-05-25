@@ -41,6 +41,7 @@ protected:
 		PCB * getPCB();
 		void removePCB(PCB* data);
 	private:
+		friend class KernelSem;
 		Node* first, *last;
 	};
 	void block(Time);

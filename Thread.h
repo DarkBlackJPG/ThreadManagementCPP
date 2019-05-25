@@ -38,6 +38,7 @@ protected:
 	friend class PCB;
 	friend void dispatch();
 	friend void interrupt timer(...);
+	friend class Idle;
 	Thread(StackSize stackSize = defaultStackSize, Time timeSlice = defaultTimeSlice);
 	virtual void run() {};
 private:

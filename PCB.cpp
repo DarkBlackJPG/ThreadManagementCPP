@@ -29,7 +29,7 @@ volatile Time PCB::currentTimeSlice = defaultTimeSlice;
 
 
 PCB::PCB() :
-		myThread(0), myTimeSlice(0), myId(++idGenerator), ss(0), sp(0), bp(0),
+		myThread(0), myTimeSlice(0), myId(-200), ss(0), sp(0), bp(0),
 		myState(PCB::RUNNING), myStack(0), timerRelease(1) {
 	blockedOnThread = new PCBList();
 	System::allUserThreads->insert(this);
@@ -49,8 +49,8 @@ void PCB::wrapper(){
 		temp->myState = PCB::READY;
 		Scheduler::put(temp);
 	}
-
 	System::running->myState = PCB::TERMINATED;
+
 	System::enablePreemption();
 	dispatch();
 }
@@ -87,7 +87,8 @@ PCB::~PCB() {
 
 	System::allUserThreads->remove(this);
 	delete blockedOnThread;
-	delete [] myStack;
+	if(myStack)
+		delete [] myStack;
 
 	//TODO dopuniti!
 }
@@ -103,11 +104,12 @@ void PCB::start() {
 };
 void PCB::waitToComplete(){ // OVDE JE MOGUCE PUCANJE!!!
 	System::disablePreemption();
-	if(this->myState == PCB::TERMINATED || System::idleThread == this->myThread)
+	if(this->myState == PCB::TERMINATED || System::idleThread == this->myThread){
 		return;
+
+	}
 	System::running->myState = PCB::BLOCKED;
 	blockedOnThread->insert(System::running);
-
 	System::enablePreemption();
 	dispatch();
 

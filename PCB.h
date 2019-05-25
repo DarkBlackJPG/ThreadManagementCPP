@@ -45,6 +45,9 @@ private:
 	friend void interrupt timer(...);
 	friend class KernelSem;
 	friend class System;
+	friend class KernelEv;
+	friend class Idle;
+	friend class SBLKLST;
 	static int idGenerator;
 
 

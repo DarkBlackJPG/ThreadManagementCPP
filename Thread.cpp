@@ -14,7 +14,7 @@
 
 /// dispatch() must be inside disabled preemprtion!
 void dispatch() {
-	if(System::preemptionEnabled<=0)
+	if(System::preemptionEnabled <= 0)
 		return;
 	INTERRUPT_DISABLE
 	System::timerCall = 1;
@@ -29,6 +29,7 @@ void Thread::start(){
 };
 void Thread::waitToComplete(){
 	myPCB->waitToComplete();
+
 };
 
 ID Thread::getId(){

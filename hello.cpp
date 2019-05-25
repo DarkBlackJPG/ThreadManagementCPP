@@ -1,9 +1,15 @@
 
-#include <iostream.h>
 #include "Thread.h"
 #include "System.h"
 #include "semaphor.h"
 #include "Buffer.h"
+#include "Event.h"
+#include "IVTEntry.h"
+#include <stdlib.h>
+#include <IOSTREAM.H>
+#include <DOS.H>
+#include <STDIO.H>
+#include <STDARG.H>
 //class MySem : public Semaphore {
 //public:
 //	MySem(int i ): Semaphore(i){};
@@ -104,80 +110,161 @@
 	thread11->waitToComplete();
  */
 
+//
+//
+//
+//class Producer:public Thread{
+//	private:
+//		Buffer *buffer;
+//	public:
+//		Producer(Buffer *buffer_):Thread(4096,2){
+//			buffer = buffer_;
+//		};
+//		~Producer(){
+//			waitToComplete();
+//		}
+//		void run();
+//};
+//
+//class Consumer:public Thread{
+//	private:
+//		Buffer *buffer;
+//	public:
+//		Consumer(Buffer *buffer_):Thread(4096,2){
+//			buffer = buffer_;
+//		};
+//		~Consumer(){
+//			waitToComplete();
+//		}
+//		void run();
+//};
+//
+//
+//void Producer::run(){
+//	while(1){
+//
+//		buffer->put(rand()%200);
+//		System::disablePreemption();
+//		cout << "Element produced " << endl;
+//		System::enablePreemption();
+//		for (int i=0;i<25000;i++){
+//			for (int j=0;j<5000;j++);
+//		}
+//	}
+//}
+//
+//
+//void Consumer::run(){
+//	while(1){
+//		int element = buffer->getElement();
+//		System::disablePreemption();
+//		cout << "Element " << element << " consumed " << endl;
+//		System::enablePreemption();
+//		for (int i=0;i<25000;i++){
+//			for (int j=0;j<5000;j++);
+//		}
+//	}
+//}
+//
+//
 
 
 
-class Producer:public Thread{
-	private:
-		Buffer *buffer;
-	public:
-		Producer(Buffer *buffer_):Thread(4096,2){
-			buffer = buffer_;
-		};
-		~Producer(){
-			waitToComplete();
-		}
-		void run();
-};
 
-class Consumer:public Thread{
-	private:
-		Buffer *buffer;
-	public:
-		Consumer(Buffer *buffer_):Thread(4096,2){
-			buffer = buffer_;
-		};
-		~Consumer(){
-			waitToComplete();
-		}
-		void run();
-};
+int syncPrintf(const char *format, ...)
+{
+	 System::disablePreemption();
+	int res;
+	va_list args;
 
-
-void Producer::run(){
-	while(1){
-		buffer->put(5);
-		System::disablePreemption();
-		cout << "Element produced " << endl;
-		System::enablePreemption();
-		for (int i=0;i<25000;i++){
-			for (int j=0;j<5000;j++);
-		}
-	}
+		va_start(args, format);
+	res = vprintf(format, args);
+	va_end(args);
+	System::enablePreemption();
+		return res;
 }
 
 
-void Consumer::run(){
-	while(1){
-		int element = buffer->getElement();
-		System::disablePreemption();
-		cout << "Element " << element << " consumed " << endl;
-		System::enablePreemption();
-		for (int i=0;i<25000;i++){
-			for (int j=0;j<5000;j++);
-		}
+
+#define lock System::disablePreemption();
+#define unlock System::enablePreemption();
+
+
+/*
+ 	 Test: Semafori sa spavanjem 4
+*/
+
+int t=-1;
+
+const int n=15;
+
+Semaphore s(1);
+
+class TestThread : public Thread
+{
+private:
+	Time waitTime;
+
+public:
+
+	TestThread(Time WT): Thread(), waitTime(WT){}
+	~TestThread()
+	{
+		waitToComplete();
 	}
+protected:
+
+	void run();
+
+};
+
+void TestThread::run()
+{
+	syncPrintf("Thread %d waits for %d units of time.\n",getId(),waitTime);
+	int r = s.wait(waitTime);
+	if(getId()%2)
+		s.signal();
+	syncPrintf("Thread %d finished: r = %d\n", getId(),r);
 }
 
+void tick()
+{
+	t++;
+	if(t)
+		syncPrintf("%d\n",t);
+}
 
+int userMain(int argc, char** argv)
+{
+	syncPrintf("Test starts.\n");
+	TestThread* t[n];
+	int i;
+	for(i=0;i<n;i++)
+	{
+		t[i] = new TestThread(5*(i+1));
+		t[i]->start();
+	}
 
+	for(i=0;i<n; i++)
+	{
+		t[i]->waitToComplete();;
+	}
+
+	delete t;
+	syncPrintf("Test ends.\n");
+	return 0;
+}
 
 
 int main(int argc, char* argv[]){
 
 	System::systemInitialization();
-	Buffer *buffer = new Buffer(2);
-	Consumer *consumer = new Consumer(buffer);
-	Producer *producer = new Producer(buffer);
-	consumer->start();
-	producer->start();
-	consumer->waitToComplete();
-	producer->waitToComplete();
+	int res = userMain(argc, argv);
 	System::systemRestoration();
 
 #ifndef BCC_BLOCK_IGNORE
 		INTERRUPT_DISABLE
-		cout << "HappyEnd\n";
+		cout << "\n**********\n*HappyEnd*\n**********\n";
 		INTERRUPT_ENABLE
 #endif
 	return 0;

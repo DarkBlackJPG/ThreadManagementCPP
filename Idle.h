@@ -10,11 +10,13 @@
 
 #include "Thread.h"
 #include "System.h"
-
+#include "PCB.h"
 class Idle: public Thread {
 public:
 	Idle() :
-		Thread(512, 1) {};
+		Thread(512, 1) {
+		myPCB->myId = -101;
+	};
 protected:
 	void run();
 };

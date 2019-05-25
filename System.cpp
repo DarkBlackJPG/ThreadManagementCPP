@@ -20,10 +20,6 @@
 	asm mov ss, tss;\
 	asm mov bp, tbp;
 
-///////////////////////////////////////////
-void tick() {}// MORA SE IZBRISATI!!!!!!!!
-//////////////////////////////////////////
-
 extern void dispatch();
 
 class Thread;
@@ -39,9 +35,11 @@ Thread * System::idleThread;
 int System::timerCall = 0;
 int System::contextSwitch = 0;
 SBLKLST* System::blockedOnWaitList;
+IVTEntry* System::interruptEntries[256];
 
-
-
+///////////////////////////////////////////
+extern void tick(); // MORA SE IZBRISATI!!!!!!!!
+//////////////////////////////////////////
 
 void interrupt timer(...) {
 	if(!System::timerCall){
@@ -55,6 +53,8 @@ void interrupt timer(...) {
 
 		if(System::preemptionEnabled > 0){
 
+			System::contextSwitch = 0;
+
 			GET_CONTEXT
 
 			System::running->sp = tsp;
@@ -66,8 +66,10 @@ void interrupt timer(...) {
 				Scheduler::put(System::running);
 			}
 			System::running = Scheduler::get();
-			if(System::running == 0)
+
+			if(System::running == 0){
 				System::running = System::idleThread->myPCB;
+			}
 
 			tsp = System::running->sp;
 			tss = System::running->ss;
@@ -76,14 +78,17 @@ void interrupt timer(...) {
 			 PCB::currentTimeSlice = System::running->myTimeSlice;
 			 PCB::runNonStop = !(PCB::currentTimeSlice > 0);
 
+
 			PUT_CONTEXT
 
-			System::contextSwitch = 0;
+
 		}
 		else {
 			System::contextSwitch = 1;
 		}
+
 	}
+
 }
 
 void System::setTimerCall(){
@@ -134,6 +139,8 @@ void System::systemRestoration(){
 	#ifndef BCC_BLOCK_IGNORE
 	setvect(0x08, _oldTimerInterrupt);
 	#endif
+
+
 
 	delete System::running;
 	INTERRUPT_ENABLE

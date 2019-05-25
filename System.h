@@ -10,7 +10,9 @@
 
 #include "PCBList.h"
 #include "SBLKLST.h"
+
 class Thread;
+class IVTEntry;
 
 #define INTERRUPT_DISABLE asm cli;
 
@@ -27,6 +29,8 @@ class System {
 	static void interrupt (*_newTimerInterrupt)(...);
 	static int timerCall;
 public:
+
+	static IVTEntry* interruptEntries[256];
 
 	static PCBList* allUserThreads;
 	static SBLKLST* blockedOnWaitList;
