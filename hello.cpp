@@ -176,7 +176,6 @@ int syncPrintf(const char *format, ...)
 	 System::disablePreemption();
 	int res;
 	va_list args;
-
 		va_start(args, format);
 	res = vprintf(format, args);
 	va_end(args);
@@ -190,24 +189,21 @@ int syncPrintf(const char *format, ...)
 #define unlock System::enablePreemption();
 
 
+
 /*
- 	 Test: Semafori sa spavanjem 4
+ 	 Test: idleThread
 */
 
-int t=-1;
 
-const int n=15;
+void tick(){}
 
-Semaphore s(1);
+Semaphore sem(0);
 
 class TestThread : public Thread
 {
-private:
-	Time waitTime;
-
 public:
 
-	TestThread(Time WT): Thread(), waitTime(WT){}
+	TestThread(): Thread(){}
 	~TestThread()
 	{
 		waitToComplete();
@@ -220,41 +216,43 @@ protected:
 
 void TestThread::run()
 {
-	syncPrintf("Thread %d waits for %d units of time.\n",getId(),waitTime);
-	int r = s.wait(waitTime);
-	if(getId()%2)
-		s.signal();
-	syncPrintf("Thread %d finished: r = %d\n", getId(),r);
+
+	sem.wait(getId() * 5);
+	System::disablePreemption();
+	cout << "Zavrsena " << getId() << " nit\n";
+	System::enablePreemption();
 }
 
-void tick()
-{
-	t++;
-	if(t)
-		syncPrintf("%d\n",t);
-}
 
 int userMain(int argc, char** argv)
 {
 	syncPrintf("Test starts.\n");
-	TestThread* t[n];
-	int i;
-	for(i=0;i<n;i++)
-	{
-		t[i] = new TestThread(5*(i+1));
-		t[i]->start();
-	}
+	TestThread *t1,*t2, *t3, *t4, *t5;
+	t1 = new TestThread();
+	t2 = new TestThread();
+	t3 = new TestThread();
+	t4 = new TestThread();
+	t5 = new TestThread();
+	t1->start();
+	t2->start();
+	t3->start();
+	t4->start();
+	t5->start();
 
-	for(i=0;i<n; i++)
-	{
-		t[i]->waitToComplete();;
-	}
-
-	delete t;
+	t1->waitToComplete();
+	t2->waitToComplete();
+	t3->waitToComplete();
+	t4->waitToComplete();
+	t5->waitToComplete();
+//	delete t1;
+//	delete t2;
+//	delete t3;
+//	delete t4;
+//	delete t5;
+////	while(1);
 	syncPrintf("Test ends.\n");
 	return 0;
 }
-
 
 int main(int argc, char* argv[]){
 

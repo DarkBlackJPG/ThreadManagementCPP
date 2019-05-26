@@ -33,6 +33,7 @@ public:
 	static IVTEntry* interruptEntries[256];
 
 	static PCBList* allUserThreads;
+
 	static SBLKLST* blockedOnWaitList;
 
 	static volatile int preemptionEnabled;

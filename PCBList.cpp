@@ -8,11 +8,14 @@
 #include "PCBList.h"
 #include "System.h"
 #include <iostream.h>
+#include "SCHEDULE.H"
 #include "PCB.h"
 PCBList::~PCBList() {
-	 Node *temp = 0;
+	Node *temp = 0;
 	while (first) {
 		temp = first;
+		temp->nodeData->myState = PCB::READY;
+		Scheduler::put(temp->nodeData);
 		first = first->next;
 		delete temp;
 	}
@@ -21,12 +24,7 @@ PCBList::~PCBList() {
 
 void PCBList::insert(PCB* data){
 	Node * newNode = new Node(data);
-	if(!first){
-		first = last = newNode;
-	} else {
-		last->next = newNode;
-		last = last->next;
-	}
+	last = (first ? last->next : first) = newNode;
 };
 PCB * PCBList::getNodeWithId(int index){
 	if(index < 0)
@@ -56,6 +54,7 @@ void PCBList::remove(PCB * data){
 		last = prev;
 	delete temp;
 };
+
 PCB * PCBList::pop_front(){
 	if (!first)
 		return 0;
@@ -67,17 +66,4 @@ PCB * PCBList::pop_front(){
 	delete temp;
 	return dat;
 
-};
-PCB * PCBList::pop_back(){
-	if(last == 0)
-		return 0;
-	Node * temp = first;
-	while(temp->next != last){
-		temp = temp->next;
-	}
-	last = temp;
-	temp = last->next;
-	PCB * dat = temp->nodeData;
-	delete temp;
-	return dat;
 };

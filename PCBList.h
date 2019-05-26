@@ -27,7 +27,6 @@ public:
 	PCB * getNodeWithId(int index);
 	void remove(PCB * data);
 	PCB * pop_front();
-	PCB * pop_back();
 
 	~PCBList();
 };

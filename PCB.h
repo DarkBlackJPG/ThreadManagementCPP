@@ -10,7 +10,7 @@
 
 #include "Thread.h"
 #include "PCBList.h"
-
+#include "KernSem.h"
 
 class PCB {
 public:
@@ -48,6 +48,8 @@ private:
 	friend class KernelEv;
 	friend class Idle;
 	friend class SBLKLST;
+	friend class PCBList;
+	friend class KernelSem::List;
 	static int idGenerator;
 
 

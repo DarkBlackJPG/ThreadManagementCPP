@@ -30,7 +30,7 @@ volatile Time PCB::currentTimeSlice = defaultTimeSlice;
 
 PCB::PCB() :
 		myThread(0), myTimeSlice(0), myId(-200), ss(0), sp(0), bp(0),
-		myState(PCB::RUNNING), myStack(0), timerRelease(1) {
+		myState(PCB::READY), myStack(0), timerRelease(1) {
 	blockedOnThread = new PCBList();
 	System::allUserThreads->insert(this);
 }
@@ -62,15 +62,18 @@ PCB::PCB(Thread* myThread, StackSize stackSize, Time timeSlice) :
 	StackSize realStackSize = stackSize / 2; // Stack size is half of given stack size
 
 	myStack = new unsigned[realStackSize];
+
 #ifndef BCC_BLOCK_IGNORE
 	myStack[realStackSize - 2] = FP_SEG(PCB::wrapper);
 	myStack[realStackSize - 3] = FP_OFF(PCB::wrapper);
 #endif
+
 	myStack[realStackSize - 1] = 0x200;
 
 	blockedOnThread = new PCBList();
 
 	int stackOffset = realStackSize - 12;
+
 #ifndef BCC_BLOCK_IGNORE
 	ss = FP_SEG(myStack + stackOffset);
 	sp = FP_OFF(myStack + stackOffset);
@@ -79,7 +82,6 @@ PCB::PCB(Thread* myThread, StackSize stackSize, Time timeSlice) :
 
 
 	System::allUserThreads->insert(this);
-
 }
 
 
@@ -89,8 +91,6 @@ PCB::~PCB() {
 	delete blockedOnThread;
 	if(myStack)
 		delete [] myStack;
-
-	//TODO dopuniti!
 }
 
 void PCB::start() {
@@ -106,12 +106,14 @@ void PCB::waitToComplete(){ // OVDE JE MOGUCE PUCANJE!!!
 	System::disablePreemption();
 	if(this->myState == PCB::TERMINATED || System::idleThread == this->myThread){
 		return;
-
 	}
 	System::running->myState = PCB::BLOCKED;
 	blockedOnThread->insert(System::running);
 	System::enablePreemption();
 	dispatch();
+	System::disablePreemption();
+	cout << "dasdas\n";
+	System::enablePreemption();
 
 };
 ID PCB::getId() const{

@@ -23,27 +23,30 @@ public:
 	KernelSem(int);
 	~KernelSem();
 
+
+	class List {
+		public:
+			class Node {
+					public:
+						Node(PCB* data, Node* next = 0) :
+							data(data), next(next){};
+						~Node(){};
+						PCB* data;
+						Node* next;
+					};
+			List();
+			~List();
+			void add(PCB* data);
+			PCB * getPCB();
+			void removePCB(PCB* data);
+		private:
+			friend class KernelSem;
+			Node* first, *last;
+		};
+
 protected:
 	friend class SBLKLST;
-	class List {
-	public:
-		class Node {
-				public:
-					Node(PCB* data, Node* next = 0) :
-						data(data), next(next){};
-					~Node(){};
-					PCB* data;
-					Node* next;
-				};
-		List();
-		~List();
-		void add(PCB* data);
-		PCB * getPCB();
-		void removePCB(PCB* data);
-	private:
-		friend class KernelSem;
-		Node* first, *last;
-	};
+
 	void block(Time);
 	void deblock();
 	void deblock(PCB*);

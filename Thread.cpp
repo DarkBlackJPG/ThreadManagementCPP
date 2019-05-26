@@ -8,11 +8,8 @@
 #include "Thread.h"
 #include "System.h"
 #include "PCB.h"
-
 #include <iostream.h>
 
-
-/// dispatch() must be inside disabled preemprtion!
 void dispatch() {
 	if(System::preemptionEnabled <= 0)
 		return;
@@ -23,13 +20,12 @@ void dispatch() {
 	INTERRUPT_ENABLE
 };
 
-
 void Thread::start(){
 	myPCB->start();
 };
+
 void Thread::waitToComplete(){
 	myPCB->waitToComplete();
-
 };
 
 ID Thread::getId(){
@@ -52,7 +48,9 @@ Thread::Thread(StackSize stackSize, Time timeSlice){
 }
 
 Thread::~Thread() {
+
 	waitToComplete();
+
 	System::disablePreemption();
 	delete myPCB;
 	System::enablePreemption();
