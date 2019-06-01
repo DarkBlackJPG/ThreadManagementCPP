@@ -19,7 +19,7 @@ class KernelSem {
 public:
 	int val();
 	int wait(Time maxTimeToWait);
-	void signal(int n);
+	int signal(int n);
 	KernelSem(int);
 	~KernelSem();
 

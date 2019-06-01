@@ -37,8 +37,6 @@ void KernelEv::signal(){
 		owner->myState = PCB::READY;
 		Scheduler::put(owner);
 		value = 0;
-	} else {
-		value = 1;
 	}
 	INTERRUPT_ENABLE
 	dispatch();

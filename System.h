@@ -27,8 +27,9 @@ class System {
 
 	static void interrupt (*_oldTimerInterrupt)(...);
 	static void interrupt (*_newTimerInterrupt)(...);
-	static int timerCall;
+	volatile static int timerCall;
 public:
+
 
 	static IVTEntry* interruptEntries[256];
 
@@ -37,7 +38,7 @@ public:
 	static SBLKLST* blockedOnWaitList;
 
 	static volatile int preemptionEnabled;
-	static int contextSwitch;
+	volatile static int contextSwitch;
 	static PCB * running;
 	static Thread * idleThread;
 	static Thread * getThreadById(int id);

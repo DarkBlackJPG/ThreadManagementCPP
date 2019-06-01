@@ -37,13 +37,13 @@ int KernelSem::wait(Time maxTimeToWait){
 };
 
 
-void KernelSem::signal(int n){
+int KernelSem::signal(int n){
 	INTERRUPT_DISABLE
 	int count = 0;
 	if(n == 0){
 		if(value + 1 <= 0){
 					deblock();
-					count++;
+					count = 1;
 		}
 		else
 			value++;
@@ -58,6 +58,7 @@ void KernelSem::signal(int n){
 		}
 	}
 	INTERRUPT_ENABLE
+	return count;
 };
 
 
@@ -92,7 +93,6 @@ void KernelSem::deblock(){ // signal deblock
 	if(!tempDat){ // this should never happen
 		return;
 	}
-
 	tempDat->myState = PCB::READY;
 	tempDat->timerRelease = 1;
 	Scheduler::put(tempDat);
@@ -101,11 +101,11 @@ void KernelSem::deblock(){ // signal deblock
 #include <stdio.h>
 void KernelSem::deblock(PCB* data) { // system wide deblock
 	// OVO SE POZIVA IZ SISTEMA
-
 	timerBlockedList->removePCB(data);
 	value++;
 	data->timerRelease = 0;
 	data->myState = PCB::READY;
+
 	Scheduler::put(data);
 };
 
@@ -134,9 +134,6 @@ KernelSem::List::~List(){
 void KernelSem::List::add(PCB* data){
 	Node * node = new Node(data);
 	last = (first ? last->next : first) = node;
-	System::disablePreemption();
-	cout << "Adresa newNode u lokalnoj listi je " << node << endl;
-	System::enablePreemption();
 };
 PCB * KernelSem::List::getPCB(){
 	if(!first)
@@ -152,7 +149,6 @@ PCB * KernelSem::List::getPCB(){
 	return pointer;
 };
 void KernelSem::List::removePCB(PCB* data){
-	cout << "remove" << endl;
 	Node* temp = first, *prev = 0;
 	for(; temp != 0 && temp->data != data; prev = temp, temp = temp->next);
 	if(!temp)

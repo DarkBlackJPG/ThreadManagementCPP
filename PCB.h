@@ -11,11 +11,11 @@
 #include "Thread.h"
 #include "PCBList.h"
 #include "KernSem.h"
-
+#include "semaphor.h"
 class PCB {
 public:
 	enum __STATE {
-		RUNNING,
+	RUNNING,
 		BLOCKED,
 		READY,
 		CREATED,
@@ -50,8 +50,10 @@ private:
 	friend class SBLKLST;
 	friend class PCBList;
 	friend class KernelSem::List;
-	static int idGenerator;
 
+
+
+	static int idGenerator;
 
 	PCBList* blockedOnThread;
 	unsigned *myStack;
@@ -61,8 +63,8 @@ private:
 	volatile int timerRelease;
 	ID myId;
 	Thread* myThread;
-	Time myTimeSlice;
-	__STATE myState;
+	volatile Time myTimeSlice;
+	volatile __STATE myState;
 };
 
 #endif /* PCB_H_ */

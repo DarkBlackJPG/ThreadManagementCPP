@@ -20,6 +20,7 @@ class PCBList {
 		};
 	Node* first, *last;
 public:
+	friend class SBLKLST;
 	PCBList() :
 		first(0), last(0){};
 

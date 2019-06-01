@@ -32,8 +32,8 @@ PCBList* System::allUserThreads = new PCBList();
 volatile int System::preemptionEnabled;
 PCB * System::running;
 Thread * System::idleThread;
-int System::timerCall = 0;
-int System::contextSwitch = 0;
+volatile int System::timerCall = 0;
+volatile int System::contextSwitch = 0;
 SBLKLST* System::blockedOnWaitList;
 IVTEntry* System::interruptEntries[256];
 
@@ -49,9 +49,11 @@ void interrupt timer(...) {
 		System::blockedOnWaitList->updateList();
 	}
 	System::timerCall = 0;
+
 	if(System::contextSwitch || ( !PCB::runNonStop && PCB::currentTimeSlice == 0 )){
 
 		if(System::preemptionEnabled > 0){
+
 
 			System::contextSwitch = 0;
 
@@ -62,6 +64,7 @@ void interrupt timer(...) {
 			System::running->bp = tbp;
 
 
+
 			if((System::running->myThread != System::idleThread) && (System::running->myState == PCB::READY)){
 				Scheduler::put(System::running);
 			}
@@ -70,6 +73,7 @@ void interrupt timer(...) {
 			if(System::running == 0){
 				System::running = System::idleThread->myPCB;
 			}
+
 
 			tsp = System::running->sp;
 			tss = System::running->ss;
@@ -104,11 +108,11 @@ Thread * System::getThreadById(int id){
 };
 
 void System::disablePreemption(){
-	--System::preemptionEnabled;
+	System::preemptionEnabled = -1;
 };
 
 void System::enablePreemption(){
-	++System::preemptionEnabled;
+	System::preemptionEnabled = 1;
 	 if (System::preemptionEnabled > 0 && System::contextSwitch)
 		dispatch();
 };
@@ -143,6 +147,7 @@ void System::systemRestoration(){
 
 
 	delete System::running;
+	delete System::idleThread;
 	INTERRUPT_ENABLE
 
 };

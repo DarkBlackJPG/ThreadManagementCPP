@@ -30,14 +30,11 @@ SBLKLST::~SBLKLST() {
 // TODO Aj proveri ovo leba ti
 void SBLKLST::insert(PCB* data,Time timer, KernelSem* semaphore){
 	Node * newNode = new Node(semaphore,timer, data);
-	System::disablePreemption();
-	cout << "Adresa newNode u globalnoj listi je " << newNode << endl;
-	System::enablePreemption();
 	if(!first){
 		first = last = newNode;
 		return;
 	}
-	if(first->timeRemaining < newNode->timeRemaining){
+	if(first->timeRemaining <= newNode->timeRemaining){
 		Node * temp = first, *prev = 0;
 		while(temp && temp->timeRemaining <= timer){
 			timer -= temp->timeRemaining;
@@ -60,31 +57,11 @@ void SBLKLST::insert(PCB* data,Time timer, KernelSem* semaphore){
 		first->next->timeRemaining -= first->timeRemaining;
 
 	}
-//	Node * temp = first;
-//		System::disablePreemption();
-//		temp = first;
-//		while(temp){
-//			cout << temp->timeRemaining << " | ";
-//			temp = temp->next;
-//		}
-//		cout << endl;
-//		System::enablePreemption();
-
 };
-
-
-//System::disablePreemption();
-//		temp = first;
-//		while(temp){
-//			cout << temp->timeRemaining<<", "<< temp << " | ";
-//			temp = temp->next;
-//		}
-//		cout << endl;
-//		System::enablePreemption();
-//		temp = first;
 void SBLKLST::remove(PCB * data){
 	Node *temp = first;
 	Node *prev = 0;
+
 	temp = first;
 	while(temp != 0 && temp->nodeData != data){
 
@@ -101,15 +78,6 @@ void SBLKLST::remove(PCB * data){
 			first = temp->next;
 	else
 			prev->next = temp->next;
-	System::disablePreemption();
-			temp = first;
-			while(temp){
-				cout << temp->timeRemaining<<", "<< temp << " | ";
-				temp = temp->next;
-			}
-			cout << endl;
-			System::enablePreemption();
-			temp = first;
 	delete temp;
 
 };
@@ -120,11 +88,14 @@ void SBLKLST::updateList(){
 	if (first == 0)
 	      return;
 	Node * temp = 0;
+
 	first->timeRemaining -= 1;
 	for(;first != 0 && first->timeRemaining == 0;){
+
 		temp = first;
 		first->semaphore->deblock(first->nodeData);
 		first = first->next;
 		delete temp;
 	}
+
 };

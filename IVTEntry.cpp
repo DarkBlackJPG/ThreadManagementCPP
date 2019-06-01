@@ -17,7 +17,7 @@ IVTEntry::IVTEntry(IVTNo num, void interrupt (*newRoutine)(...)) {
 	setvect(num, newRoutine);
 #endif
 	myNumber = num;
-	myEvent = 0;
+	myEvent = 0; //Because I dont know which event is mine
 	System::interruptEntries[num] = this;
 	INTERRUPT_ENABLE
 }
@@ -32,11 +32,11 @@ IVTEntry::~IVTEntry() {
 }
 
 void IVTEntry::signal(IVTNo num){
+	System::disablePreemption();
 	if(System::interruptEntries[num]->myEvent != 0){
-		System::disablePreemption();
 		System::interruptEntries[num]->myEvent->signal();
-		System::enablePreemption();
 	}
+	System::enablePreemption();
 }
 void IVTEntry::activateOld(IVTNo num){
 	System::disablePreemption();

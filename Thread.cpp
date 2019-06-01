@@ -11,8 +11,9 @@
 #include <iostream.h>
 
 void dispatch() {
-	if(System::preemptionEnabled <= 0)
+	if(System::preemptionEnabled <= 0){
 		return;
+	}
 	INTERRUPT_DISABLE
 	System::timerCall = 1;
 	System::contextSwitch = 1;
@@ -49,7 +50,7 @@ Thread::Thread(StackSize stackSize, Time timeSlice){
 
 Thread::~Thread() {
 
-	waitToComplete();
+	myPCB->waitToComplete();
 
 	System::disablePreemption();
 	delete myPCB;

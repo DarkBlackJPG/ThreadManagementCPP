@@ -10,14 +10,14 @@
 
 typedef unsigned char IVTNo;
 class KernelEv;
-
-
-#define PREPAREENTRY(num, flag) \
+#include "System.h"
+#include "IVTEntry.h"
+#define PREPAREENTRY(num, flag)\
 void interrupt interruptRoutine##num(...) {\
     if (flag)\
 		System::interruptEntries[num]->activateOld(num);\
 	System::interruptEntries[num]->signal(num);\
-}\
+};\
 IVTEntry entry##num(num, interruptRoutine##num);
 
 class Event {
