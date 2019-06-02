@@ -8,28 +8,22 @@
 #include "PCB.h"
 #include "SCHEDULE.H"
 #include <dos.h>
-#include <iostream.h>
 #include "System.h"
 
 extern void dispatch();
-
-
-
-
 
 int PCB::idGenerator = 0;
 volatile int PCB::runNonStop = 0;
 volatile Time PCB::currentTimeSlice = defaultTimeSlice;
 
 
-
-
-
-
-
-
+/**
+ *
+ * Constructor invocation in System::systemInitialize(); no need to lock, surrounded with locks
+ *
+ */
 PCB::PCB() :
-		myThread(0), myTimeSlice(defaultTimeSlice), myId(1000), ss(0), sp(0), bp(0),
+		myThread(0), myTimeSlice(defaultTimeSlice), myId(-8086), ss(0), sp(0), bp(0),
 		myState(PCB::READY), myStack(0), timerRelease(1) {
 	blockedOnThread = new PCBList();
 	System::allUserThreads->insert(this);
@@ -40,8 +34,10 @@ ID PCB::getRunningId(){
 }
 
 void PCB::wrapper(){
+
 	System::running->myThread->run();
-	System::disablePreemption();
+
+	lockPreemption
 	for(PCB* temp = System::running->blockedOnThread->pop_front();
 			 temp != 0;
 		 	 temp = System::running->blockedOnThread->pop_front())
@@ -54,16 +50,22 @@ void PCB::wrapper(){
 
 	System::running->myState = PCB::TERMINATED;
 
-	System::enablePreemption();
+	unlockPreemption
 
 	dispatch();
 }
 
+/*
+ *
+ * Constructor located in Thread constructor -> it's locked so no need to lock this part
+ *
+ */
 PCB::PCB(Thread* myThread, StackSize stackSize, Time timeSlice) :
 	myThread(myThread), myTimeSlice(timeSlice), myId(++idGenerator), ss(0), sp(0), bp(0),
 	myState(PCB::CREATED), myStack(0), timerRelease(1) {
 
-	StackSize realStackSize = stackSize / 2; // Stack size is half of given stack size
+	StackSize temp = (stackSize > 65536 ? 65536 : stackSize);
+	StackSize realStackSize = temp / 2; // Stack size is half of given stack size
 
 	myStack = new unsigned[realStackSize];
 
@@ -87,6 +89,11 @@ PCB::PCB(Thread* myThread, StackSize stackSize, Time timeSlice) :
 	System::allUserThreads->insert(this);
 }
 
+/**
+ *
+ * Destructor invocked in thread destructor -> locked no need to lock here
+ *
+ */
 
 PCB::~PCB() {
 	System::allUserThreads->remove(this);
@@ -96,34 +103,35 @@ PCB::~PCB() {
 }
 
 void PCB::start() {
-	System::disablePreemption();
-	if(myState == PCB::CREATED)
-	{
-		myState = PCB::READY;
-		Scheduler::put(this);
-	}
-	System::enablePreemption();
+	lockPreemption
+		if(myState == PCB::CREATED)
+		{
+			myState = PCB::READY;
+			Scheduler::put(this);
+		}
+	unlockPreemption
 };
+
 void PCB::waitToComplete(){
-	System::disablePreemption();
-	if(myState == PCB::TERMINATED){
-		return;
-	}
-	if(System::idleThread == this->myThread) {
-		return;
-	}
-	if( myState == PCB::CREATED){
-		return;
-	}
+	lockPreemption
+		if(myState == PCB::TERMINATED){
+			return;
+		}
+		if(System::idleThread == myThread) {
+			return;
+		}
+		if( myState == PCB::CREATED){
+			return;
+		}
 
+		System::running->myState = PCB::BLOCKED;
+		blockedOnThread->insert(System::running);
 
-	System::running->myState = PCB::BLOCKED;
-	blockedOnThread->insert(System::running);
-
-	System::enablePreemption();
+	unlockPreemption
 	dispatch();
 
 };
+
 ID PCB::getId() const{
 	return myId;
 };

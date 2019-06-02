@@ -14,10 +14,19 @@
 class Thread;
 class IVTEntry;
 
-#define INTERRUPT_DISABLE asm cli;
+static volatile int preemptionEnabled = 1;
+
+#define lockPreemption preemptionEnabled--;
+
+#define unlockPreemption preemptionEnabled++;\
+	if (preemptionEnabled > 0 && System::contextSwitch)\
+				dispatch();
+
+#define INTERRUPT_DISABLE asm pushf;\
+	asm cli;
 
 
-#define INTERRUPT_ENABLE asm sti;
+#define INTERRUPT_ENABLE asm popf;
 
 
 class System {
@@ -27,9 +36,9 @@ class System {
 
 	static void interrupt (*_oldTimerInterrupt)(...);
 	static void interrupt (*_newTimerInterrupt)(...);
-	volatile static int timerCall;
-public:
 
+public:
+	volatile static int timerCall;
 
 	static IVTEntry* interruptEntries[256];
 
@@ -50,9 +59,6 @@ public:
 
 	static void systemInitialization();
 	static void systemRestoration();
-
-	System();
-	~System();
 };
 
 

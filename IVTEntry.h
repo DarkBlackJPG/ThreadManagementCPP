@@ -19,6 +19,7 @@ public:
 	static void activateOld(IVTNo num);
 private:
 	friend class KernelEv;
+	friend class Event;
 	void interrupt (*oldInterrupt)(...);
 	KernelEv * myEvent;
 	IVTNo myNumber;

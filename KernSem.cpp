@@ -10,17 +10,18 @@
 #include "PCB.h"
 #include "SCHEDULE.H"
 
-
-#include <IOSTREAM.h>
-
 KernelSem::KernelSem(int init) :
  value(init) {
+	lockPreemption
 	valueBlock = new List();
 	timerBlockedList = new List();
+	unlockPreemption
 };
 KernelSem::~KernelSem(){
+	lockPreemption
 	delete valueBlock;
 	delete timerBlockedList;
+	unlockPreemption
 };
 
 
@@ -82,7 +83,12 @@ void KernelSem::block(Time t){ // Block is called from wait and has interrupts d
 
 };
 
-void KernelSem::deblock(){ // signal deblock
+/*
+ *
+ * Deblock called exclusively from signal
+ *
+ */
+void KernelSem::deblock(){
 	if(valueBlock->first == 0 && timerBlockedList->first == 0)
 		return;
 	PCB* tempDat = valueBlock->getPCB();
@@ -90,17 +96,20 @@ void KernelSem::deblock(){ // signal deblock
 		tempDat = timerBlockedList->getPCB();
 		System::blockedOnWaitList->remove(tempDat);
 	}
-	if(!tempDat){ // this should never happen
+	if(!tempDat){ // This should never happen
 		return;
 	}
+	value++;
 	tempDat->myState = PCB::READY;
 	tempDat->timerRelease = 1;
 	Scheduler::put(tempDat);
 };
-
-#include <stdio.h>
-void KernelSem::deblock(PCB* data) { // system wide deblock
-	// OVO SE POZIVA IZ SISTEMA
+/*
+ *
+ * System wide deblock -> System::updateWaitList(); ==> called from timer
+ *
+ */
+void KernelSem::deblock(PCB* data) {
 	timerBlockedList->removePCB(data);
 	value++;
 	data->timerRelease = 0;
@@ -112,7 +121,7 @@ void KernelSem::deblock(PCB* data) { // system wide deblock
 
 /*
  *
- * LISTA
+ * KernelSem::List -> Semaphore list implementation
  *
  */
 
@@ -132,8 +141,7 @@ KernelSem::List::~List(){
 
 };
 void KernelSem::List::add(PCB* data){
-	Node * node = new Node(data);
-	last = (first ? last->next : first) = node;
+	last = (first ? last->next : first) = new Node(data);
 };
 PCB * KernelSem::List::getPCB(){
 	if(!first)

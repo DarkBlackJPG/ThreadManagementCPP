@@ -9,17 +9,24 @@
 #include "System.h"
 #include "ECB.h"
 
-
+/*
+ *
+ * System::interruptEntries[ivtNo] should always be firstly initialized because, otherwise, events will not work properly
+ * i.e. Events will not work at all
+ *
+ */
 Event::Event(IVTNo ivtNo) {
-	System::disablePreemption();
+	lockPreemption
 	myImpl = new KernelEv(ivtNo, this);
-	System::enablePreemption();
+	if(System::interruptEntries[ivtNo] != 0)
+			System::interruptEntries[ivtNo]->myEvent = myImpl;
+	unlockPreemption
 }
 
 Event::~Event() {
-	System::disablePreemption();
+	lockPreemption
 	delete myImpl;
-	System::enablePreemption();
+	unlockPreemption
 }
 
 void Event::wait(){
