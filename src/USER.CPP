@@ -26,7 +26,7 @@
 
 Time TIME_SLICE = 2;   // 0 ili defaultTimeSlice
 
-int N = 69;            // 1 <= N <= 19
+int N = 3;            // 1 <= N <= 19
 
 //---------------------------------------------------------------------------//
 
@@ -104,7 +104,7 @@ void Consumer::run () {
 		char d = myBuffer->take();
 		consume(d);
 		if (i++ == 40) {
-			assert(1 != sleep.wait(1));
+			assert(1 != sleep.wait(5));
 			i = 0;
 		}else for(int j=0;j<200;j++);
 	}
@@ -112,14 +112,14 @@ void Consumer::run () {
 	intLock
 	cout<<endl<<"ESC pressed - empty the buffer!"<<endl;
 	intUnlock
-
+	
 	while (myBuffer->fullCount()){
 		char d = myBuffer->take();
 		consume(d);
 		dispatch();
 	}
-
-
+	
+	
 	intLock
 	cout<<endl<<"Happy End"<<endl;
 	intUnlock
@@ -147,7 +147,7 @@ int userMain (int argc, char* argv[])
 	}
 	int buffSize = atoi(argv[1]);
 	N = atoi(argv[2]);
-	N = N>19 ? N : N;
+	N = N>19 ? 19 : N;
 	TIME_SLICE = atoi(argv[3]);
 	
 	if(buffSize<N) {
