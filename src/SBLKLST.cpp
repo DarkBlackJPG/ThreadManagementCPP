@@ -27,7 +27,6 @@ SBLKLST::~SBLKLST() {
 	System::enablePreemption();
 }
 
-// TODO Aj proveri ovo leba ti
 void SBLKLST::insert(PCB* data,Time timer, KernelSem* semaphore){
 	Node * newNode = new Node(semaphore,timer, data);
 	if(!first){

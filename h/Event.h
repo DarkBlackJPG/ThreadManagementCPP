@@ -12,16 +12,18 @@ typedef unsigned char IVTNo;
 class KernelEv;
 #include "System.h"
 #include "IVTEntry.h"
+
 #define PREPAREENTRY(num, flag)\
 void interrupt interruptRoutine##num(...) {\
     if (flag)\
-		System::interruptEntries[num]->activateOld(num);\
-	System::interruptEntries[num]->signal(num);\
+		IVTEntry::activateOld(num);\
+	IVTEntry::signal(num);\
 };\
 IVTEntry entry##num(num, interruptRoutine##num);
 
 class Event {
 public:
+
 	Event(IVTNo ivtNo);
 	~Event();
 

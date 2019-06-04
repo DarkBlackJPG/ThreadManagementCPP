@@ -1,4 +1,4 @@
-/*
+ /*
  * IVTEntry.cpp
  *
  *  Created on: May 25, 2019
@@ -12,12 +12,13 @@
 
 IVTEntry::IVTEntry(IVTNo num, void interrupt (*newRoutine)(...)) {
 	INTERRUPT_DISABLE
+	oldInterrupt = 0;
+	myNumber = num;
+	myEvent = 0; //Because I dont know which event is mine
 #ifndef BCC_BLOCK_IGNORE
 	oldInterrupt = getvect(num);
 	setvect(num, newRoutine);
 #endif
-	myNumber = num;
-	myEvent = 0; //Because I dont know which event is mine
 	System::interruptEntries[num] = this;
 	INTERRUPT_ENABLE
 }
@@ -27,19 +28,17 @@ IVTEntry::~IVTEntry() {
 	#ifndef BCC_BLOCK_IGNORE
 		setvect(myNumber, oldInterrupt);
 	#endif
+	oldInterrupt = 0;
 	System::interruptEntries[myNumber] = 0;
+	myEvent = 0;
 	INTERRUPT_ENABLE
 }
 
 void IVTEntry::signal(IVTNo num){
-	System::disablePreemption();
 	if(System::interruptEntries[num]->myEvent != 0){
 		System::interruptEntries[num]->myEvent->signal();
 	}
-	System::enablePreemption();
 }
 void IVTEntry::activateOld(IVTNo num){
-	System::disablePreemption();
 	System::interruptEntries[num]->oldInterrupt();
-	System::enablePreemption();
 };

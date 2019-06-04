@@ -11,14 +11,14 @@
 
 
 Semaphore::Semaphore(int init){
-System::disablePreemption();
-myImpl = new KernelSem(init);
-System::enablePreemption();
+	lockPreemption
+	myImpl = new KernelSem(init);
+	unlockPreemption
 };
 Semaphore::~Semaphore(){
-	System::disablePreemption();
+	lockPreemption
 	delete myImpl;
-	System::enablePreemption();
+	unlockPreemption
 };
 
 int Semaphore::wait(Time maxTimeToWait){
@@ -30,8 +30,8 @@ void Semaphore::signal(int n){
 
 int Semaphore::val() const{
 	int val = 0;
-	System::disablePreemption();
+	lockPreemption
 	val = myImpl->val();
-	System::enablePreemption();
+	unlockPreemption
 	return val;
 };

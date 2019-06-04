@@ -9,35 +9,44 @@
 #include "ECB.h"
 #include "IVTEntry.h"
 #include "PCB.h"
+#include <IOSTREAM.H>
 #include "SCHEDULE.H"
+/**
+ *
+ * ECB.cpp is used as the implementation of the user class "Event".
+ *
+ *
+ *
+ */
+
 KernelEv::KernelEv(IVTNo ivtNo, Event * myEvent):
 		myNo(ivtNo), myEvent(myEvent) {
 	owner = System::running;
 	value = 0;
-	if(System::interruptEntries[ivtNo] != 0)
-		System::interruptEntries[ivtNo]->myEvent = this;
-	else
-		return;
-
 };
 
 void KernelEv::wait(){
 	if(System::running == owner){
 		INTERRUPT_DISABLE
-				if (--value < 0) {
-					owner->myState = PCB::BLOCKED;
-					dispatch();
-				}
+		if (--value < 0) {
+			System::running->myState = PCB::BLOCKED;
+			dispatch();
+			INTERRUPT_ENABLE
+			return;
+		}
 		INTERRUPT_ENABLE
-	}
+		return;
+	} else return;
 };
+
 void KernelEv::signal(){
-	INTERRUPT_DISABLE
+	lockPreemption 
 	if(value < 0){
 		owner->myState = PCB::READY;
 		Scheduler::put(owner);
 		value = 0;
+		dispatch();
 	}
-	INTERRUPT_ENABLE
-	dispatch();
+	unlockPreemption 
 };
+

@@ -10,8 +10,13 @@
 #include "PCB.h"
 #include <iostream.h>
 
+/*
+ *
+ * ====== Dispatch =======
+ *
+ */
 void dispatch() {
-	if(System::preemptionEnabled <= 0){
+	if(preemptionEnabled == 0){
 		return;
 	}
 	INTERRUPT_DISABLE
@@ -20,7 +25,11 @@ void dispatch() {
 	asm int 0x08;
 	INTERRUPT_ENABLE
 };
-
+/**
+ *
+ * =======================
+ *
+ */
 void Thread::start(){
 	myPCB->start();
 };
@@ -36,24 +45,28 @@ ID Thread::getId(){
 ID Thread::getRunningId(){
 	return PCB::getRunningId();
 };
+
 Thread* Thread::getThreadById(ID id){
 	return System::getThreadById(id);
 };
 
 Thread::Thread(StackSize stackSize, Time timeSlice){
-	StackSize temp = (stackSize > 65536 ? 65536 : stackSize);
-	System::disablePreemption();
-	myPCB = new PCB(this, temp, timeSlice);
-	System::enablePreemption();
+	lockPreemption
+	myPCB = new PCB(this, stackSize, timeSlice);
+	unlockPreemption
 
 }
 
 Thread::~Thread() {
-
+	/*
+	 *
+	 * Independently locked, mustn't be locked here
+	 *
+	 */
 	myPCB->waitToComplete();
 
-	System::disablePreemption();
+	lockPreemption
 	delete myPCB;
-	System::enablePreemption();
+	unlockPreemption
 }
 

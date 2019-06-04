@@ -18,10 +18,6 @@ typedef int ID;
 
 class PCB;
 
-static volatile unsigned tsp;
-static volatile unsigned tss;
-static volatile unsigned tbp;
-
 class Thread {
 public:
 
