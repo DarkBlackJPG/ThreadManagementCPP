@@ -40,18 +40,13 @@ void KernelEv::wait(){
 };
 
 void KernelEv::signal(){
-	lockPreemption //
-	//INTERRUPT_DISABLE //works aswell, but slows down the system slightly
+	lockPreemption 
 	if(value < 0){
 		owner->myState = PCB::READY;
 		Scheduler::put(owner);
 		value = 0;
-		//dispatch();
+		dispatch();
 	}
-	//INTERRUPT_DISABLE
-	dispatch();
-	unlockPreemption //ENABLE_INTERRUPT
-
-	//dispatch(); //;; This overflows memory here, it does make the program faster, but it isn't stable, can't figure out why
+	unlockPreemption 
 };
 

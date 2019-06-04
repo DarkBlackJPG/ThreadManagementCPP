@@ -64,9 +64,9 @@ void interrupt timer(...) {
 	// timerCall should be cleared here because you can call dispatch while in critical section
 	// because of that you would have to put clearing inside both the if and else branch
 	// which, in turn, translate to timerCall = 0 unconditionally being called
-
-	System::timerCall = 0;
-
+	// ========================================================================================
+	   System::timerCall = 0; ////////////////////////////////////////////////////////////////
+	// ========================================================================================
 	if(System::contextSwitch ||
 			(!PCB::runNonStop && PCB::currentTimeSlice == 0 )){
 
@@ -170,7 +170,7 @@ void System::systemInitialization(){
  * Warning!
  * The assembly code is put inside System restoration because there is a not so frequent bug where an interrupt happens
  * while you're expecting a confirmation of your I/O interrupt request, this sends that last ack and tells the keyboard
- * "Hey, you can send, I recieved everything you sent towards me!"
+ * "Hey, you can send, I recieved everything you've sent towards me!"
  *
  * This occurs mostly in the public test.
  *  =====================================================================================================================
@@ -196,7 +196,7 @@ void System::systemRestoration(){
 
 	delete System::running;
 	delete System::idleThread;
-
+	delete System::blockedOnWaitList;
 	INTERRUPT_ENABLE
 
 };
